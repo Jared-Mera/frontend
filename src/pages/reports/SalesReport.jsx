@@ -14,7 +14,6 @@ const SalesReportPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Establecer fechas por defecto (mes actual)
   useEffect(() => {
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -52,66 +51,88 @@ const SalesReportPage = () => {
   const headers = ['ID Venta', 'Fecha', 'Vendedor', 'Total'];
 
   const renderRow = (sale) => (
-    <tr key={sale._id}>
-      <td className="px-6 py-4 text-sm">{sale._id.substring(0, 8)}...</td>
-      <td className="px-6 py-4 text-sm">
+    <tr key={sale._id} className="hover:bg-gray-50 transition-colors">
+      <td className="px-4 py-3 text-sm text-gray-900">{sale._id.substring(0, 8)}...</td>
+      <td className="px-4 py-3 text-sm text-gray-600">
         {new Date(sale.fecha).toLocaleDateString()}
       </td>
-      <td className="px-6 py-4 text-sm">
+      <td className="px-4 py-3 text-sm text-gray-600">
         {sale.vendedor_id?.name || 'N/A'}
       </td>
-      <td className="px-6 py-4 font-medium">
+      <td className="px-4 py-3 text-sm font-semibold text-indigo-600">
         {formatCurrency(sale.total)}
       </td>
     </tr>
   );
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Reporte de Ventas</h1>
-      
-      <ReportFilters
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onGenerate={handleGenerateReport}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-6">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Reporte de Ventas</h1>
+        <p className="text-gray-600 mt-2">Genera reportes detallados de ventas por período</p>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-6">
+        <ReportFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onGenerate={handleGenerateReport}
+        />
+      </div>
       
       {error && (
-        <Alert variant="danger" className="mb-4">
+        <Alert variant="danger" className="mb-6 animate-fade-in">
           {error}
         </Alert>
       )}
       
-      {loading && <p className="text-center py-4">Generando reporte...</p>}
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+        </div>
+      )}
       
       {reportData && (
-        <div>
-          <div className="bg-white p-4 rounded-md shadow mb-6">
-            <h2 className="text-lg font-medium mb-2">Resumen del Reporte</h2>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-gray-50 p-4 rounded">
-                <p className="text-sm text-gray-600">Total Ventas</p>
-                <p className="text-xl font-bold">{reportData.cantidadVentas}</p>
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Resumen del Reporte
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 p-4 rounded-xl border border-indigo-200">
+                <p className="text-sm font-medium text-indigo-600">Total Ventas</p>
+                <p className="text-2xl md:text-3xl font-bold text-indigo-800">{reportData.cantidadVentas}</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded">
-                <p className="text-sm text-gray-600">Total Ingresos</p>
-                <p className="text-xl font-bold">{formatCurrency(reportData.totalVentas)}</p>
+              <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+                <p className="text-sm font-medium text-green-600">Total Ingresos</p>
+                <p className="text-2xl md:text-3xl font-bold text-green-800">{formatCurrency(reportData.totalVentas)}</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded">
-                <p className="text-sm text-gray-600">Periodo</p>
-                <p className="text-xl font-bold">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+                <p className="text-sm font-medium text-blue-600">Período</p>
+                <p className="text-sm font-bold text-blue-800">
                   {new Date(filters.startDate).toLocaleDateString()} - {new Date(filters.endDate).toLocaleDateString()}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white p-4 rounded-md shadow">
-            <h2 className="text-lg font-medium mb-4">Detalle de Ventas</h2>
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="p-4 md:p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Detalle de Ventas
+              </h2>
+            </div>
             <Table 
               headers={headers} 
               data={reportData.ventas} 
               renderRow={renderRow}
+              className="min-w-full"
             />
           </div>
         </div>

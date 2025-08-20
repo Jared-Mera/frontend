@@ -5,6 +5,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import RoleForm from './RoleForm';
 import Alert from '../../components/ui/Alert';
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const RolesPage = () => {
   const [roles, setRoles] = useState([]);
@@ -59,47 +60,96 @@ const RolesPage = () => {
   const headers = ['Nombre', 'Permisos', 'Acciones'];
 
   const renderRow = (role) => (
-    <tr key={role._id}>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{role.name}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        {role.permissions.join(', ')}
+    <tr key={role._id} className="hover:bg-gray-50 transition-colors">
+      <td className="px-4 py-4 text-sm font-medium text-gray-900">{role.name}</td>
+      <td className="px-4 py-4 text-sm text-gray-600">
+        <div className="flex flex-wrap gap-1">
+          {role.permissions.slice(0, 3).map(permission => (
+            <span 
+              key={permission}
+              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 capitalize"
+            >
+              {permission.replace(/_/g, ' ')}
+            </span>
+          ))}
+          {role.permissions.length > 3 && (
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+              +{role.permissions.length - 3} más
+            </span>
+          )}
+        </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        {!['Administrador', 'Vendedor', 'Consultor'].includes(role.name) && (
-          <>
-            <Button variant="outline" size="sm" onClick={() => handleEdit(role)}>Editar</Button>
-            <Button variant="danger" size="sm" onClick={() => handleDelete(role._id)} className="ml-2">
-              Eliminar
-            </Button>
-          </>
-        )}
+      <td className="px-4 py-4 text-sm font-medium">
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleEdit(role)}
+            className="flex items-center"
+            disabled={['Administrador', 'Vendedor', 'Consultor'].includes(role.name)}
+          >
+            <PencilIcon className="h-4 w-4 mr-1" />
+            Editar
+          </Button>
+          <Button 
+            variant="danger" 
+            size="sm" 
+            onClick={() => handleDelete(role._id)}
+            className="flex items-center"
+            disabled={['Administrador', 'Vendedor', 'Consultor'].includes(role.name)}
+          >
+            <TrashIcon className="h-4 w-4 mr-1" />
+            Eliminar
+          </Button>
+        </div>
       </td>
     </tr>
   );
 
   if (loading) {
-    return <p>Cargando roles...</p>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Gestión de Roles</h1>
-        <Button onClick={handleCreate}>Nuevo Rol</Button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-6">
+      <div className="mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Gestión de Roles</h1>
+            <p className="text-gray-600 mt-2">Administra los roles y permisos del sistema</p>
+          </div>
+          <Button onClick={handleCreate} className="flex items-center gap-2">
+            <PlusIcon className="h-5 w-5" />
+            Nuevo Rol
+          </Button>
+        </div>
       </div>
 
       {alert.message && (
-        <Alert variant={alert.type} className="mb-4">
+        <Alert variant={alert.type} className="mb-6 animate-fadeIn">
           {alert.message}
         </Alert>
       )}
 
-      <Table headers={headers} data={roles} renderRow={renderRow} />
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table 
+            headers={headers} 
+            data={roles} 
+            renderRow={renderRow}
+            emptyMessage="No hay roles registrados"
+          />
+        </div>
+      </div>
 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={currentRole ? 'Editar Rol' : 'Crear Rol'}
+        size="lg"
       >
         <RoleForm 
           role={currentRole} 

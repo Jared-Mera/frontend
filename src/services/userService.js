@@ -23,3 +23,8 @@ export const updateUser = async (id, userData) => {
 export const deleteUser = async (id) => {
   await nodeAPI.delete(`/api/users/${id}`);
 };
+
+export const searchUsers = async (query) => {
+  const response = await nodeAPI.get(`/api/users/search?query=${encodeURIComponent(query)}`);
+  return response.data;
+};

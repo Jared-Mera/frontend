@@ -39,3 +39,9 @@ export const uploadProductImage = async (file) => {
   });
   return response.data.image_url;
 };
+
+export const searchProducts = async (query, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  const response = await pythonAPI.get(`/api/products/search?query=${encodeURIComponent(query)}&skip=${skip}&limit=${limit}`);
+  return response.data;
+};

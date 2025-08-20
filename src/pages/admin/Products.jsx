@@ -4,10 +4,17 @@ import ProductList from '../../components/products/ProductList';
 import ProductForm from '../../components/products/ProductForm';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
+import { getProducts, searchProducts } from '../../services/productService'; // Agregar searchProducts
 import { createProduct, updateProduct, deleteProduct } from '../../services/productService';
 import Alert from '../../components/ui/Alert';
+import { PlusIcon } from '@heroicons/react/24/outline';
 
 const ProductsPage = () => {
+  const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(''); // Estado para búsqueda
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [alert, setAlert] = useState({ type: '', message: '' });
@@ -55,24 +62,33 @@ const ProductsPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Gestión de Productos</h1>
-        <Button onClick={handleCreate}>Nuevo Producto</Button>
+    <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Gestión de Productos</h1>
+          <p className="text-sm text-gray-600 mt-1">Administra los productos de tu inventario</p>
+        </div>
+        <Button onClick={handleCreate} className="flex items-center gap-2">
+          <PlusIcon className="h-5 w-5" />
+          Nuevo Producto
+        </Button>
       </div>
       
       {alert.message && (
-        <Alert variant={alert.type} className="mb-4">
+        <Alert variant={alert.type} className="mb-6 animate-fadeIn">
           {alert.message}
         </Alert>
       )}
 
-      <ProductList onEdit={handleEdit} onDelete={handleDelete} />
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <ProductList onEdit={handleEdit} onDelete={handleDelete} />
+      </div>
       
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={currentProduct ? 'Editar Producto' : 'Crear Producto'}
+        size="lg"
       >
         <ProductForm 
           product={currentProduct}

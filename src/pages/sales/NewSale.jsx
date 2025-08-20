@@ -1,4 +1,3 @@
-// src/pages/sales/NewSale.jsx
 import React, { useState } from 'react';
 import SaleForm from '../../components/sales/SaleForm';
 import { createSale } from '../../services/saleService';
@@ -21,7 +20,6 @@ const NewSalePage = () => {
         message: 'Venta registrada exitosamente' 
       });
       
-      // Redirigir después de 2 segundos
       setTimeout(() => navigate('/sales/history'), 2000);
     } catch (error) {
       setAlert({ 
@@ -33,25 +31,33 @@ const NewSalePage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Nueva Venta</h1>
-        <div className="text-sm text-gray-600">
-          Vendedor: <span className="font-medium">{user?.name}</span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-6">
+      <div className="mb-6 md:mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Nueva Venta</h1>
+            <p className="text-gray-600 mt-2">Registra una nueva venta en el sistema</p>
+          </div>
+          <div className="bg-white rounded-full px-4 py-2 shadow-sm">
+            <span className="text-sm text-gray-600">Vendedor: </span>
+            <span className="font-medium text-indigo-600">{user?.name}</span>
+          </div>
         </div>
       </div>
       
       {alert.message && (
-        <Alert variant={alert.type} className="mb-4">
+        <Alert variant={alert.type} className="mb-6 animate-fade-in">
           {alert.message}
         </Alert>
       )}
 
-      <SaleForm 
-        onSubmit={handleSubmit}
-        onCancel={() => navigate('/dashboard')}
-        loading={loading}
-      />
+      <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
+        <SaleForm 
+          onSubmit={handleSubmit}
+          onCancel={() => navigate('/dashboard')}
+          loading={loading}
+        />
+      </div>
     </div>
   );
 };

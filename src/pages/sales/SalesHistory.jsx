@@ -1,4 +1,3 @@
-// src/pages/sales/SalesHistory.jsx
 import React, { useState } from 'react';
 import SaleList from '../../components/sales/SaleList';
 import { getSaleById } from '../../services/saleService';
@@ -24,12 +23,15 @@ const SalesHistoryPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Historial de Ventas</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-6">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Historial de Ventas</h1>
+        <p className="text-gray-600 mt-2">Consulta el registro completo de ventas realizadas</p>
       </div>
-      
-      <SaleList onViewDetails={handleViewDetails} />
+
+      <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
+        <SaleList onViewDetails={handleViewDetails} />
+      </div>
       
       <Modal
         isOpen={!!selectedSale}
@@ -38,11 +40,13 @@ const SalesHistoryPage = () => {
         size="lg"
       >
         {loadingDetail ? (
-          <p className="text-center py-4">Cargando detalle...</p>
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600"></div>
+          </div>
         ) : saleDetail ? (
           <SaleItem sale={saleDetail} />
         ) : (
-          <p>No se encontró la venta</p>
+          <p className="text-center py-4 text-gray-500">No se encontró la venta</p>
         )}
       </Modal>
     </div>
