@@ -14,7 +14,7 @@ const ProductsPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(''); // Estado para búsqueda
+  const [searchTerm, setSearchTerm] = useState(''); // El estado para la busqueda
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [alert, setAlert] = useState({ type: '', message: '' });
@@ -34,7 +34,7 @@ const ProductsPage = () => {
       try {
         await deleteProduct(id);
         setAlert({ type: 'success', message: 'Producto eliminado correctamente' });
-        // Cerrar alerta después de 3 segundos
+        // Cerraramos alerta después de 3 segundos
         setTimeout(() => setAlert({ type: '', message: '' }), 3000);
       } catch (error) {
         setAlert({ type: 'danger', message: 'Error al eliminar el producto' });
