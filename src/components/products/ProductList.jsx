@@ -10,8 +10,8 @@ const ProductList = ({ onEdit, onDelete }) => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(''); // Estado para búsqueda
 
   const limit = 10;
 
@@ -25,8 +25,7 @@ const ProductList = ({ onEdit, onDelete }) => {
         data = await getProducts(page, limit);
       }
       setProducts(data);
-      // Suponiendo que el backend devuelve el total de productos
-      setTotalPages(Math.ceil(100 / limit)); // Ejemplo, ajustar según backend
+      setTotalPages(Math.ceil(100 / limit)); // Ajustar según respuesta del backend
       setError(null);
     } catch (err) {
       setError('Error al cargar productos');
@@ -38,7 +37,7 @@ const ProductList = ({ onEdit, onDelete }) => {
 
   useEffect(() => {
     loadProducts(page, searchTerm);
-  }, [page]);
+  }, [page, searchTerm]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -77,7 +76,7 @@ const ProductList = ({ onEdit, onDelete }) => {
 
   return (
     <div>
-      {/* Barra de búsqueda */}
+      {/* Agregar barra de búsqueda */}
       <div className="mb-4">
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
@@ -89,7 +88,7 @@ const ProductList = ({ onEdit, onDelete }) => {
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             Buscar
           </button>
@@ -101,7 +100,7 @@ const ProductList = ({ onEdit, onDelete }) => {
                 setPage(1);
                 loadProducts(1);
               }}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
             >
               Limpiar
             </button>

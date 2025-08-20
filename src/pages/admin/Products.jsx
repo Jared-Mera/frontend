@@ -14,7 +14,8 @@ const ProductsPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(''); // El estado para la busqueda
+  // Agregar estado de búsqueda
+  const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [alert, setAlert] = useState({ type: '', message: '' });
@@ -60,6 +61,26 @@ const ProductsPage = () => {
       setAlert({ type: 'danger', message: error.message || 'Error al guardar el producto' });
     }
   };
+
+  // Modificar la función loadProducts para aceptar búsqueda
+const loadProducts = async (page, searchQuery = '') => {
+  setLoading(true);
+  try {
+    let data;
+    if (searchQuery) {
+      data = await searchProducts(searchQuery, page, limit);
+    } else {
+      data = await getProducts(page, limit);
+    }
+    setProducts(data);
+    setTotalPages(Math.ceil(100 / limit));
+  } catch (error) {
+    console.error('Error al cargar productos:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
