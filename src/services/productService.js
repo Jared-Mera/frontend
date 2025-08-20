@@ -34,7 +34,7 @@ export const getProductsByCategory = async (categoryId) => {
 export const uploadProductImage = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await pythonAPI.post('/api/upload/upload', formData, { // Corregido
+  const response = await pythonAPI.post('/api/upload/upload', formData, { // Linea Corregida
     headers: { 'Content-Type': 'multipart/form-data' }
   });
   return response.data.image_url;
