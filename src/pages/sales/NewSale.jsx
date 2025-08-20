@@ -5,7 +5,7 @@ import Alert from '../../components/ui/Alert';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-#hola
+//hola
 const NewSalePage = () => {
   const [alert, setAlert] = useState({ type: '', message: '' });
   const [loading, setLoading] = useState(false);
