@@ -2,7 +2,7 @@ import React from 'react';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
-#pedro
+// pedro
 const ReportFilters = ({ filters, onFilterChange, onGenerate }) => {
   return (
     <div className="bg-white p-4 rounded-md shadow mb-6">
