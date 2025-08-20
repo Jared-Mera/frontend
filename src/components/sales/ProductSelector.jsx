@@ -9,7 +9,7 @@ const ProductSelector = ({ onSelectProduct }) => {
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-
+// juanito
   useEffect(() => {
     const loadProducts = async () => {
       setLoading(true);

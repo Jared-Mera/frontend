@@ -13,7 +13,7 @@ const SaleList = ({ onViewDetails }) => {
   const [error, setError] = useState('');
 
   const limit = 10;
-
+// sales
   const loadSales = async () => {
     setLoading(true);
     try {

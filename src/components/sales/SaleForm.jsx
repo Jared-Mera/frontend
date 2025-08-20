@@ -11,7 +11,7 @@ const SaleForm = ({ onSubmit, onCancel, loading }) => {
   const handleAddProduct = (product) => {
     // Verificar si el producto ya está en la venta
     const existingIndex = saleItems.findIndex(item => item.producto_id === product.id);
-    
+    // luis
     if (existingIndex >= 0) {
       // Actualizar cantidad si ya existe
       const updatedItems = [...saleItems];
