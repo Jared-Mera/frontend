@@ -13,7 +13,7 @@ export const getProduct = async (id) => {
 };
 
 export const createProduct = async (productData) => {
-  const response = await pythonAPI.post('/api/products', productData);
+  const response = await pythonAPI.post('/api/products', productData);//Creacion Procucto
   return response.data;
 };
 
