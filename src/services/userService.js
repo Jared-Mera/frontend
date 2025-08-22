@@ -1,7 +1,7 @@
-import { nodeAPI } from './api';
+import { nodeAPI } from "./api";
 
 export const getUsers = async () => {
-  const response = await nodeAPI.get('/api/users');
+  const response = await nodeAPI.get("/api/users");
   return response.data;
 };
 
@@ -11,7 +11,7 @@ export const getUser = async (id) => {
 };
 
 export const createUser = async (userData) => {
-  const response = await nodeAPI.post('/api/users', userData);
+  const response = await nodeAPI.post("/api/users", userData);
   return response.data;
 };
 
@@ -25,6 +25,15 @@ export const deleteUser = async (id) => {
 };
 
 export const searchUsers = async (query) => {
-  const response = await nodeAPI.get(`/api/users/search?query=${encodeURIComponent(query)}`);
+  const response = await nodeAPI.get(
+    `/api/users/search?query=${encodeURIComponent(query)}`
+  );
+  return response.data;
+};
+
+export const updateUserPasswordByAdmin = async (id, newPassword) => {
+  const response = await nodeAPI.put(`/api/users/${id}/password`, {
+    newPassword,
+  });
   return response.data;
 };
