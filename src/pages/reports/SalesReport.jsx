@@ -6,7 +6,11 @@ import { formatCurrency } from "../../utils/helpers";
 import ReportFilters from "../../components/sales/ReportFilters";
 
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
+
+if (typeof autoTable === "function" && !jsPDF.prototype.autoTable) {
+  autoTable(jsPDF); // en algunos setups esto añade autoTable a prototype
+}
 
 // Componente Modal simple
 const Modal = ({ isOpen, onClose, title, children }) => {
