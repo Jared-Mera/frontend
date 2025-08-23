@@ -219,14 +219,19 @@ const SalesReportPage = () => {
 
         {reportData && (
           <div className="flex gap-2">
-            
+            <button
+              onClick={handleDownloadPDF}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
+            >
+              Descargar PDF (Cliente)
+            </button>
 
             <button
               onClick={handleDownloadServerPDF}
               className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition"
               disabled={pdfLoading}
             >
-              {pdfLoading ? "Generando PDF" : "Descargar PDF"}
+              {pdfLoading ? "Generando PDF (servidor)..." : "Descargar PDF (Servidor)"}
             </button>
           </div>
         )}
