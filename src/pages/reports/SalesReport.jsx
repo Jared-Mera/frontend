@@ -8,8 +8,6 @@ import ReportFilters from "../../components/sales/ReportFilters";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-const [pdfLoading, setPdfLoading] = useState(false);
-
 // Componente Modal simple
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
@@ -35,6 +33,7 @@ const SalesReportPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedSale, setSelectedSale] = useState(null); // Para el modal
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     const today = new Date();
@@ -64,13 +63,14 @@ const SalesReportPage = () => {
       const data = await getSalesReport(filters.startDate, filters.endDate);
       setReportData(data);
     } catch (err) {
+      console.error("Error generando reporte:", err);
       setError(err.message || "Error al generar el reporte");
     } finally {
       setLoading(false);
     }
   };
 
-  // PDF funcional con los datos de detalle de ventas
+  // PDF funcional con los datos de detalle de ventas (cliente-side)
   const handleDownloadPDF = () => {
     if (!reportData) return;
 
@@ -89,11 +89,7 @@ const SalesReportPage = () => {
       37
     );
     doc.text(
-      `Periodo: ${new Date(
-        filters.startDate
-      ).toLocaleDateString()} - ${new Date(
-        filters.endDate
-      ).toLocaleDateString()}`,
+      `Periodo: ${new Date(filters.startDate).toLocaleDateString()} - ${new Date(filters.endDate).toLocaleDateString()}`,
       14,
       44
     );
@@ -116,6 +112,70 @@ const SalesReportPage = () => {
     });
 
     doc.save("reporte_ventas.pdf");
+  };
+
+  // Descargar PDF generado por el servidor (server-side)
+  const handleDownloadServerPDF = async () => {
+    if (!filters.startDate || !filters.endDate) {
+      setError("Por favor seleccione ambas fechas");
+      return;
+    }
+
+    setPdfLoading(true);
+    setError("");
+
+    try {
+      const resp = await downloadSalesReportPDF(filters.startDate, filters.endDate);
+
+      // Intentar extraer filename de Content-Disposition si existe
+      let filename = `reporte_ventas_${filters.startDate}_${filters.endDate}.pdf`;
+      const cd = resp.headers?.["content-disposition"] || resp.headers?.["Content-Disposition"];
+      if (cd) {
+        const match = cd.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)["']?/i);
+        if (match && match[1]) {
+          try {
+            filename = decodeURIComponent(match[1]);
+          } catch (e) {
+            filename = match[1];
+          }
+        }
+      }
+
+      const arrayBuffer = resp.data;
+      const blob = new Blob([arrayBuffer], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+
+      // Forzar descarga
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      // // Alternativa: abrir en nueva pestaña (preview)
+      // window.open(url, '_blank');
+    } catch (err) {
+      console.error("Error descargando PDF servidor:", err);
+
+      // Intentar obtener mensaje de error si el backend devolvió JSON en arraybuffer
+      let message = "Error descargando PDF";
+      if (err.response && err.response.data) {
+        try {
+          const text = new TextDecoder().decode(err.response.data);
+          const parsed = JSON.parse(text);
+          message = parsed.message || parsed.error || JSON.stringify(parsed);
+        } catch (e) {
+          message = err.response.statusText || err.message || String(err);
+        }
+      } else {
+        message = err.message || String(err);
+      }
+      setError(message);
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   const headers = ["ID Venta", "Fecha", "Vendedor", "Total", "Acciones"];
@@ -149,13 +209,10 @@ const SalesReportPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-6">
       <div className="mb-6 md:mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-            Reporte de Ventas
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Genera reportes detallados de ventas por período
-          </p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Reporte de Ventas</h1>
+          <p className="text-gray-600 mt-2">Genera reportes detallados de ventas por período</p>
         </div>
+
         {reportData && (
           <div className="flex gap-2">
             <button
@@ -170,19 +227,14 @@ const SalesReportPage = () => {
               className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition"
               disabled={pdfLoading}
             >
-              {pdfLoading ? 'Generando PDF (servidor)...' : 'Descargar PDF (Servidor)'}
+              {pdfLoading ? "Generando PDF (servidor)..." : "Descargar PDF (Servidor)"}
             </button>
           </div>
         )}
-
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-6">
-        <ReportFilters
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          onGenerate={handleGenerateReport}
-        />
+        <ReportFilters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerateReport} />
       </div>
 
       {error && (
@@ -200,31 +252,20 @@ const SalesReportPage = () => {
       {reportData && (
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-              Resumen del Reporte
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">Resumen del Reporte</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 p-4 rounded-xl border border-indigo-200">
-                <p className="text-sm font-medium text-indigo-600">
-                  Total Ventas
-                </p>
-                <p className="text-2xl md:text-3xl font-bold text-indigo-800">
-                  {reportData.cantidadVentas}
-                </p>
+                <p className="text-sm font-medium text-indigo-600">Total Ventas</p>
+                <p className="text-2xl md:text-3xl font-bold text-indigo-800">{reportData.cantidadVentas}</p>
               </div>
               <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
-                <p className="text-sm font-medium text-green-600">
-                  Total Ingresos
-                </p>
-                <p className="text-2xl md:text-3xl font-bold text-green-800">
-                  {formatCurrency(reportData.totalVentas)}
-                </p>
+                <p className="text-sm font-medium text-green-600">Total Ingresos</p>
+                <p className="text-2xl md:text-3xl font-bold text-green-800">{formatCurrency(reportData.totalVentas)}</p>
               </div>
               <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
                 <p className="text-sm font-medium text-blue-600">Período</p>
                 <p className="text-sm font-bold text-blue-800">
-                  {new Date(filters.startDate).toLocaleDateString()} -{" "}
-                  {new Date(filters.endDate).toLocaleDateString()}
+                  {new Date(filters.startDate).toLocaleDateString()} - {new Date(filters.endDate).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -232,38 +273,25 @@ const SalesReportPage = () => {
 
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div className="p-4 md:p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                Detalle de Ventas
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-800 flex items-center">Detalle de Ventas</h2>
             </div>
-            <Table
-              headers={headers}
-              data={reportData.ventas || []}
-              renderRow={renderRow}
-              className="min-w-full"
-            />
+            <Table headers={headers} data={reportData.ventas || []} renderRow={renderRow} className="min-w-full" />
           </div>
         </div>
       )}
 
       {/* Modal de detalle de venta */}
-      <Modal
-        isOpen={!!selectedSale}
-        onClose={() => setSelectedSale(null)}
-        title="Detalle de Venta"
-      >
+      <Modal isOpen={!!selectedSale} onClose={() => setSelectedSale(null)} title="Detalle de Venta">
         {selectedSale && (
           <div>
             <p>
               <strong>Cliente:</strong> {selectedSale.cliente || "N/A"}
             </p>
             <p>
-              <strong>Vendedor:</strong>{" "}
-              {selectedSale.vendedor_id?.name || "N/A"}
+              <strong>Vendedor:</strong> {selectedSale.vendedor_id?.name || "N/A"}
             </p>
             <p>
-              <strong>Fecha:</strong>{" "}
-              {new Date(selectedSale.fecha).toLocaleDateString()}
+              <strong>Fecha:</strong> {new Date(selectedSale.fecha).toLocaleDateString()}
             </p>
             <p className="mt-2 font-semibold">Productos:</p>
             <ul className="list-disc list-inside">
@@ -273,65 +301,12 @@ const SalesReportPage = () => {
                 </li>
               )) || <li>No hay productos</li>}
             </ul>
-            <p className="mt-2 font-semibold">
-              Total: {formatCurrency(selectedSale.total)}
-            </p>
+            <p className="mt-2 font-semibold">Total: {formatCurrency(selectedSale.total)}</p>
           </div>
         )}
       </Modal>
     </div>
   );
 };
-
-const handleDownloadServerPDF = async () => {
-  if (!filters.startDate || !filters.endDate) {
-    setError("Por favor seleccione ambas fechas");
-    return;
-  }
-
-  setPdfLoading(true);
-  setError("");
-
-  try {
-    // Llama al servicio que retorna ArrayBuffer
-    const resp = await downloadSalesReportPDF(filters.startDate, filters.endDate);
-    const arrayBuffer = resp.data;
-    const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-
-    // Forzar descarga:
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `reporte_ventas_${filters.startDate}_${filters.endDate}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-
-    // --- Alternativa para abrir en nueva pestaña (preview) ---
-    // window.open(url, '_blank');
-  } catch (err) {
-    console.error('Error descargando PDF servidor:', err);
-
-    // Si el backend devuelve JSON con error (texto), intentamos parsear
-    let message = 'Error descargando PDF';
-    if (err.response) {
-      try {
-        // si viene como arraybuffer con JSON error, convertimos
-        const text = new TextDecoder().decode(err.response.data);
-        const parsed = JSON.parse(text);
-        message = parsed.message || parsed.error || JSON.stringify(parsed);
-      } catch (e) {
-        message = err.response.statusText || String(err);
-      }
-    } else {
-      message = err.message || String(err);
-    }
-    setError(message);
-  } finally {
-    setPdfLoading(false);
-  }
-};
-
 
 export default SalesReportPage;
