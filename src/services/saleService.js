@@ -33,3 +33,16 @@ export const getProductsForSale = async () => {
   const response = await pythonAPI.get('/api/products?limit=1000');
   return response.data;
 };
+
+export const downloadSalesReportPDF = async (startDate, endDate, options = { debug: false }) => {
+  const params = { startDate, endDate };
+  if (options.debug) params.debug = 'true';
+
+  const response = await nodeAPI.get('/api/sales/report/pdf', {
+    params,
+    // importante: recibir binario
+    responseType: 'arraybuffer'
+  });
+
+  return response; // response.data es ArrayBuffer
+};

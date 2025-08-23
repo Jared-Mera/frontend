@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getSalesReport } from "../../services/saleService";
+import { getSalesReport, downloadSalesReportPDF } from "../../services/saleService";
 import Table from "../../components/ui/Table";
 import Alert from "../../components/ui/Alert";
 import { formatCurrency } from "../../utils/helpers";
@@ -7,6 +7,8 @@ import ReportFilters from "../../components/sales/ReportFilters";
 
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+
+const [pdfLoading, setPdfLoading] = useState(false);
 
 // Componente Modal simple
 const Modal = ({ isOpen, onClose, title, children }) => {
@@ -155,13 +157,24 @@ const SalesReportPage = () => {
           </p>
         </div>
         {reportData && (
-          <button
-            onClick={handleDownloadPDF}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
-          >
-            Descargar PDF
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleDownloadPDF}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
+            >
+              Descargar PDF (Cliente)
+            </button>
+
+            <button
+              onClick={handleDownloadServerPDF}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition"
+              disabled={pdfLoading}
+            >
+              {pdfLoading ? 'Generando PDF (servidor)...' : 'Descargar PDF (Servidor)'}
+            </button>
+          </div>
         )}
+
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-6">
@@ -269,5 +282,56 @@ const SalesReportPage = () => {
     </div>
   );
 };
+
+const handleDownloadServerPDF = async () => {
+  if (!filters.startDate || !filters.endDate) {
+    setError("Por favor seleccione ambas fechas");
+    return;
+  }
+
+  setPdfLoading(true);
+  setError("");
+
+  try {
+    // Llama al servicio que retorna ArrayBuffer
+    const resp = await downloadSalesReportPDF(filters.startDate, filters.endDate);
+    const arrayBuffer = resp.data;
+    const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+
+    // Forzar descarga:
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reporte_ventas_${filters.startDate}_${filters.endDate}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    // --- Alternativa para abrir en nueva pestaña (preview) ---
+    // window.open(url, '_blank');
+  } catch (err) {
+    console.error('Error descargando PDF servidor:', err);
+
+    // Si el backend devuelve JSON con error (texto), intentamos parsear
+    let message = 'Error descargando PDF';
+    if (err.response) {
+      try {
+        // si viene como arraybuffer con JSON error, convertimos
+        const text = new TextDecoder().decode(err.response.data);
+        const parsed = JSON.parse(text);
+        message = parsed.message || parsed.error || JSON.stringify(parsed);
+      } catch (e) {
+        message = err.response.statusText || String(err);
+      }
+    } else {
+      message = err.message || String(err);
+    }
+    setError(message);
+  } finally {
+    setPdfLoading(false);
+  }
+};
+
 
 export default SalesReportPage;
