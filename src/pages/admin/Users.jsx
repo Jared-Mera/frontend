@@ -164,11 +164,13 @@ const UsersPage = () => {
         title={currentUser ? 'Editar Usuario' : 'Crear Usuario'}
         size="lg"
       >
-        <UserForm 
-          user={currentUser} 
-          onSubmitSuccess={handleSubmitSuccess} 
-          onCancel={() => setIsModalOpen(false)} 
+        <UserForm
+          user={currentUser}
+          onSubmitSuccess={handleSubmitSuccess}
+          onCancel={() => setIsModalOpen(false)}
+          isAdmin={true}   // <- temporal para probar
         />
+
       </Modal>
     </div>
   );
