@@ -32,7 +32,7 @@ export const searchUsers = async (query) => {
 };
 
 export const updateUserPasswordByAdmin = async (id, newPassword) => {
-  const response = await nodeAPI.put(`/api/users/${id}/password`, {
+  const response = await nodeAPI.put(`/api/users/${id}/change-password`, {
     newPassword,
   });
   return response.data;
